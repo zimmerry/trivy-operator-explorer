@@ -57,6 +57,22 @@ spec:
               value: '{{ .Values.s3.prefix }}'
             - name: TRIVY_OPERATOR_EXPLORER_S3_REGION
               value: '{{ .Values.s3.region }}'
+            {{- if .Values.s3.endpoint }}
+            - name: AWS_ENDPOINT_URL
+              value: '{{ .Values.s3.endpoint }}'
+            {{- end }}
+            {{- if .Values.s3.credentials.existingSecret }}
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.s3.credentials.existingSecret }}
+                  key: {{ .Values.s3.credentials.existingSecretKeys.accessKeyId }}
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.s3.credentials.existingSecret }}
+                  key: {{ .Values.s3.credentials.existingSecretKeys.secretAccessKey }}
+            {{- end }}
             - name: TRIVY_OPERATOR_EXPLORER_CACHE_REFRESH_INTERVAL
               value: '{{ .Values.config.cache_refresh_interval }}'
             {{- with .Values.extraEnv }}

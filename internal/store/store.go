@@ -110,7 +110,17 @@ func New(ctx context.Context, bucket, prefix, region string) (*Client, error) {
 	}
 
 	return &Client{
-		s3:     s3.NewFromConfig(cfg),
+		s3: s3.NewFromConfig(cfg, func(o *s3.Options) {
+			// Only force path-style when a custom endpoint is configured
+			// (SeaweedFS, MinIO, etc.), which populates BaseEndpoint from
+			// AWS_ENDPOINT_URL. Those implementations only support path-style
+			// addressing; without it the SDK prepends the bucket to the
+			// endpoint host and DNS resolution fails. AWS S3 keeps its default
+			// virtual-hosted style.
+			if o.BaseEndpoint != nil && *o.BaseEndpoint != "" {
+				o.UsePathStyle = true
+			}
+		}),
 		bucket: bucket,
 		prefix: strings.Trim(prefix, "/"),
 	}, nil

@@ -22,18 +22,36 @@ config:
   syncInterval: '5m'
 
 # S3 configuration. The collector writes this cluster's report bundle here.
-# Credentials are resolved via the standard AWS credential chain; use
-# serviceAccount.annotations for IRSA.
 s3:
   # Required: the bucket to write to.
   bucket: ''
   # Optional key prefix within the bucket.
   prefix: ''
-  # Optional region. If empty, the AWS SDK default resolution is used.
+  # Region.
+  #   - AWS S3: set to the bucket's region (or leave empty to use the SDK's
+  #     default resolution from the environment/instance metadata).
+  #   - Non-AWS (SeaweedFS/MinIO): any value is usually accepted; 'us-east-1'
+  #     is a safe placeholder.
   region: ''
+  # Custom S3 endpoint URL.
+  #   - AWS S3: leave empty to use the standard regional endpoints.
+  #   - Non-AWS (SeaweedFS/MinIO): set the S3 API endpoint, e.g.
+  #     'http://seaweedfs-s3.seaweedfs.svc.cluster.local:8333'. When set, the
+  #     app automatically uses path-style addressing.
+  endpoint: ''
+  # Credentials. By default they are resolved via the standard AWS credential
+  # chain (IRSA/web-identity via serviceAccount.annotations, instance profile,
+  # or environment). For non-AWS backends or static keys, reference a secret.
+  credentials:
+    # Name of an existing secret holding the access key id and secret access
+    # key. Leave empty to rely on the default credential chain (e.g. IRSA).
+    existingSecret: ''
+    # Keys within existingSecret that hold the credentials.
+    existingSecretKeys:
+      accessKeyId: 'AWS_ACCESS_KEY_ID'
+      secretAccessKey: 'AWS_SECRET_ACCESS_KEY'
 
-# Extra environment variables to add to the collector container (e.g. static AWS
-# credentials when not using IRSA).
+# Extra environment variables to add to the collector container.
 extraEnv: []
 
 serviceAccount:
